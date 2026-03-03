@@ -1,14 +1,15 @@
 {
-  "name": "gurvirsingh.me",
+  "name": "my-portfolio",
   "private": true,
   "scripts": {
     "build": "turbo run build",
+    "check-types": "turbo run check-types",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "lint": "turbo run lint"
   },
   "devDependencies": {
+    "@types/aws-lambda": "8.10.161",
     "prettier": "^3.7.4",
     "turbo": "^2.8.13",
     "typescript": "5.9.2"
@@ -20,5 +21,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "sst": "4.1.8"
+  }
 }
