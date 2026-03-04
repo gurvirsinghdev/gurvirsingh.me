@@ -6,6 +6,11 @@
 
 declare module "sst" {
   export interface Resource {
+    "ConnectionKey": {
+      "privateKey": string
+      "publicKey": string
+      "type": "tls.index/privateKey.PrivateKey"
+    }
     "HttpPortfolio": {
       "type": "sst.aws.Nextjs"
       "url": string

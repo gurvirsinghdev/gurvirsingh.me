@@ -7,20 +7,32 @@ export default $config({
       protect: ["production"].includes(input?.stage),
       home: "aws",
       providers: {
-        aws: { region: "ca-central-1" },
-        cloudflare: "6.13.0",
+        aws: { region: "us-west-2" },
+        tls: "5.3.0",
       },
     };
   },
   async run() {
     const httpPortfolio = new sst.aws.Nextjs("HttpPortfolio", {
       path: "apps/web",
-      domain: {
-        name: "gurvirsingh.me",
-        dns: sst.cloudflare.dns({
-          zone: process.env.CLOUDFLARE_ZONE,
-        }),
-        redirects: ["www.gurvirsingh.me"],
+    });
+
+    sst.Linkable.wrap(tls.PrivateKey, (resource) => ({
+      properties: {
+        publicKey: resource.publicKeyOpenssh,
+        privateKey: resource.privateKeyOpenssh,
+      },
+    }));
+    const connectionKey = new tls.PrivateKey("ConnectionKey", {
+      algorithm: "ED25519",
+    });
+
+    const devSshService = new sst.x.DevCommand("DevSshPortfolioService", {
+      link: [connectionKey],
+      dev: {
+        autostart: true,
+        directory: "apps/wish",
+        command: "go run cmd/main.go",
       },
     });
 
