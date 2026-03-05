@@ -15,6 +15,15 @@ declare module "sst" {
       "type": "sst.aws.Nextjs"
       "url": string
     }
+    "PortfolioPrivateCloud": {
+      "bastion": string
+      "type": "sst.aws.Vpc"
+    }
+    "sshPortfolioService": {
+      "service": string
+      "type": "sst.aws.Service"
+      "url": string
+    }
   }
 }
 /// <reference path="sst-env.d.ts" />

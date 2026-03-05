@@ -10,4 +10,5 @@ FROM mirror.gcr.io/alpine:3.21.2
 WORKDIR /main/
 ENV FOO=1
 COPY --from=builder /app/ssh .
+EXPOSE 2222
 CMD TERM=xterm-256color ./ssh
