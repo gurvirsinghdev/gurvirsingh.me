@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"errors"
 	"log"
 	"net"
@@ -44,12 +42,6 @@ func createServer() error {
 		wish.WithMiddleware(
 			recover.Middleware(activeterm.Middleware(), bubbletea.Middleware(teaHandler)),
 		),
-		wish.WithPublicKeyAuth(func(ctx ssh.Context, publicKey ssh.PublicKey) bool {
-			hash := md5.Sum(publicKey.Marshal())
-			fingerprint := hex.EncodeToString(hash[:])
-			ctx.SetValue("fingerprint", fingerprint)
-			return true
-		}),
 	)
 	if err != nil {
 		return err

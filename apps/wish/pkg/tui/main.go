@@ -63,7 +63,7 @@ func (m model) View() string {
 func renderResume(width int) string {
 	title := lipgloss.NewStyle().Bold(true).Align(lipgloss.Center).Width(width).Render("Gurvir Singh")
 
-	contactInfo := lipgloss.NewStyle().Align(lipgloss.Center).Width(width).Render("Abbotsford, BC V3G\n+1 (778) 201 1637 | hi@gurvirsingh.me")
+	contactInfo := lipgloss.NewStyle().Align(lipgloss.Center).Width(width).Render("Abbotsford, BC V3G\n+1 (XXX) XXX XXXX | hi@gurvirsingh.me")
 
 	intro := "\nFull-stack web developer with hands-on experience building web applications\nusing Javascript, React, PHP, and MySQL. Worked with international and local\nclients to develop and deliver custom software solutions, including internal\nbusiness tools, and web platforms. Comfortable handling both front-end and\nback-end development, and collaborating with cross-functional teams.\n"
 
