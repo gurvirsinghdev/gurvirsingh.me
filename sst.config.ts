@@ -27,7 +27,7 @@ export default $config({
       algorithm: "ED25519",
     });
 
-    const devSshService = new sst.x.DevCommand("DevSshPortfolioService", {
+    new sst.x.DevCommand("DevSshPortfolioService", {
       link: [connectionKey],
       dev: {
         autostart: true,

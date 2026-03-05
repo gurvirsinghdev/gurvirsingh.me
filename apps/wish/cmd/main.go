@@ -5,12 +5,12 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
-	"fmt"
-	"log/slog"
+	"log"
 	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/ssh"
@@ -18,30 +18,31 @@ import (
 	"github.com/charmbracelet/wish/activeterm"
 	"github.com/charmbracelet/wish/bubbletea"
 	"github.com/charmbracelet/wish/recover"
-	"github.com/muesli/termenv"
 	"github.com/sst/sst/v3/sdk/golang/resource"
 	"gurvirsingh.me/pkg/tui"
 )
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	osChannel := make(chan os.Signal, 1)
-	signal.Notify(osChannel, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-osChannel
-		cancel()
-	}()
+	if err := createServer(); err != nil {
+		log.Fatal(err)
+	}
+}
 
-	connectionPrivateKey, err := resource.Get("ConnectionKey", "privateKey")
+func createServer() error {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	serverKey, err := resource.Get("ConnectionKey", "privateKey")
 	if err != nil {
-		panic(err)
+		log.Fatal("Unable to read the host private key!")
+		return err
 	}
 
 	s, err := wish.NewServer(
 		wish.WithAddress(net.JoinHostPort("0.0.0.0", "2222")),
-		wish.WithHostKeyPEM([]byte(connectionPrivateKey.(string))),
+		wish.WithHostKeyPEM([]byte(serverKey.(string))),
 		wish.WithMiddleware(
-			recover.Middleware(bubbletea.Middleware(teaHandler), activeterm.Middleware()),
+			recover.Middleware(activeterm.Middleware(), bubbletea.Middleware(teaHandler)),
 		),
 		wish.WithPublicKeyAuth(func(ctx ssh.Context, publicKey ssh.PublicKey) bool {
 			hash := md5.Sum(publicKey.Marshal())
@@ -50,53 +51,24 @@ func main() {
 			return true
 		}),
 	)
-
 	if err != nil {
-		panic(fmt.Sprintf("Unable to start the server:\n%s", err))
+		return err
 	}
-	if err = s.ListenAndServe(); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
-		cancel()
-		panic(fmt.Sprintf("Unable to start the server:\n%s", err))
-	}
-	slog.Info("Server Started", "server", "started")
+
+	go func() {
+		if err := s.ListenAndServe(); err != nil && !errors.Is(err, ssh.ErrServerClosed) {
+			log.Printf("Server Error:\n%s", err)
+			stop()
+		}
+	}()
 
 	<-ctx.Done()
-	s.Shutdown(ctx)
-}
-
-type SessionBridge struct {
-	ssh.Session
-	tty *os.File
-}
-
-func (s *SessionBridge) Write(data []byte) (int, error) {
-	return s.Session.Write(data)
-}
-func (s *SessionBridge) Read(data []byte) (int, error) {
-	return s.Session.Read(data)
-}
-func (s *SessionBridge) Fd() uintptr {
-	return s.tty.Fd()
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	return s.Shutdown(shutdownCtx)
 }
 
 func teaHandler(s ssh.Session) (tea.Model, []tea.ProgramOption) {
-	pty, _, _ := s.Pty()
-	sessionBridge := &SessionBridge{
-		Session: s, tty: pty.Slave,
-	}
-	renderer := bubbletea.MakeRenderer(sessionBridge)
-	fingerprint := s.Context().Value("fingerprint").(string)
-	command := s.Command()
-	slog.Info("Client Fingerprint", "fingerprint", fingerprint)
-	slog.Info("Client Command", "command", command)
-
-	clientAddr := s.RemoteAddr().String()
-	host, _, _ := net.SplitHostPort(clientAddr)
-	slog.Info("Client IP", "host", host)
-
-	if pty.Term == "xterm-ghostty" {
-		renderer.SetColorProfile(termenv.TrueColor)
-	}
-
-	return tui.NewModel(), nil
+	renderer := bubbletea.MakeRenderer(s)
+	return tui.NewModel(renderer), []tea.ProgramOption{tea.WithAltScreen()}
 }
