@@ -1,26 +1,92 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #101010;
+  --foreground: #ffffff;
+  --muted: #a1a1aa;
+  --border: #27272a;
+  --code: #18181b;
+  --accent: #c4b5fd;
+  --surface: #18181b;
+  --duration-exit: 180ms;
+  --duration-enter: 280ms;
+
+  scroll-behavior: smooth;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-code: var(--code);
+  --color-accent: var(--accent);
+  --color-surface: var(--surface);
+  --font-sans: var(--font-dm-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--background);
+  color: var(--foreground);
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 400;
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(site-footer) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(site-footer) {
+  display: none;
+}
+
+::view-transition-new(site-footer) {
+  animation: none;
+}
+
+::view-transition-old(.fade-out) {
+  animation: var(--duration-exit) ease-out both fade-out;
+}
+
+::view-transition-new(.fade-in) {
+  animation: var(--duration-enter) ease-in both fade-in;
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }
