@@ -1,3 +1,4 @@
+import { ExperienceList } from "@/components/experience-list";
 import { PageShell } from "@/components/page-shell";
 import { PostList } from "@/components/post-list";
 import { site } from "@/lib/site";
@@ -16,6 +17,7 @@ export default function Home() {
       </header>
 
       <div className="mt-10 flex flex-col gap-8">
+        <ExperienceList />
         <PostList category="writing" />
       </div>
 
